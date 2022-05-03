@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NonRealTimeMeta xmlns="urn:schemas-professionalDisc:nonRealTimeMeta:ver.2.00" xmlns:lib="urn:schemas-professionalDisc:lib:ver.2.00" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lastUpdate="2021-08-14T11:27:22+01:00">
+	<TargetMaterial umidRef="060A2B340101010501010D4313000000ACA6327A409405DBD44DA4FFFEA78C2B"/>
+	<Duration value="465"/>
+	<LtcChangeTable tcFps="30" halfStep="false">
+		<LtcChange frameCount="0" value="45511105" status="increment"/>
+		<LtcChange frameCount="464" value="61061205" status="end"/>
+	</LtcChangeTable>
+	<CreationDate value="2021-08-14T11:27:22+01:00"/>
+	<VideoFormat>
+		<VideoRecPort port="DIRECT"/>
+		<VideoFrame videoCodec="AVC_3840_2160_HP@L51" captureFps="29.97p" formatFps="29.97p"/>
+		<VideoLayout pixel="3840" numOfVerticalLine="2160" aspectRatio="16:9"/>
+	</VideoFormat>
+	<AudioFormat numOfChannel="2">
+		<AudioRecPort port="DIRECT" audioCodec="LPCM16" trackDst="CH1"/>
+		<AudioRecPort port="DIRECT" audioCodec="LPCM16" trackDst="CH2"/>
+	</AudioFormat>
+	<Device manufacturer="Sony" modelName="FDR-X3000" serialNo="4294967295"/>
+	<RecordingMode type="normal" cacheRec="false"/>
+	<AcquisitionRecord>
+		<Group name="ExifGPS">
+			<Item name="VersionID" value="2.2.0.0"/>
+			<Item name="LatitudeRef" value="N"/>
+			<Item name="Latitude" value="44:41:31.488"/>
+			<Item name="LongitudeRef" value="E"/>
+			<Item name="Longitude" value="5:59:06.461"/>
+			<Item name="AltitudeRef" value="0"/>
+			<Item name="Altitude" value="1646.7"/>
+			<Item name="TimeStamp" value="10:27:23.000"/>
+			<Item name="Status" value="A"/>
+			<Item name="MeasureMode" value="3"/>
+			<Item name="DOP" value="1.5200"/>
+			<Item name="SpeedRef" value="K"/>
+			<Item name="Speed" value="11.290"/>
+			<Item name="TrackRef" value="T"/>
+			<Item name="Track" value="126.55"/>
+			<Item name="MapDatum" value="WGS-84"/>
+			<Item name="DateStamp" value="2021:08:14"/>
+			<Item name="Differential" value="0"/>
+		</Group>
+	</AcquisitionRecord>
+</NonRealTimeMeta>
