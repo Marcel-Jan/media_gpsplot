@@ -2,10 +2,16 @@ from xml.dom import minidom
 import os
 import re
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import folium
 
-geodf = pd.DataFrame(columns=['creationdate', 'latitude', 'longitude', 'altitude'])
+
+def geoconv_degr_dec(geodegree):
+    degree, minute, second = re.split(':', geodegree)
+    geodecim = float(degree) + float(minute) / 60 + float(second) / (60 * 60)
+    return geodecim
+
+
+geodf = pd.DataFrame(columns=['xmlfilename', 'creationdate', 'latitude', 'longitude', 'altitude'])
 
 path_of_the_directory= 'Z:\\Eigen video\\2021\\Vercors en Drome 2021'
 print(f"Files and directories in path: {path_of_the_directory}")
@@ -22,9 +28,6 @@ for filename in os.listdir(path_of_the_directory):
 
         Items = sonyxml.getElementsByTagName('Item')
         for elem in Items:
-            # print(f"{elem.attributes['name'].value} : {elem.attributes['value'].value}")
-            # if not elem.getElementsByTagName("LatitudeRef"):
-            #     print("LatitudeRef not found")
             if elem.attributes['name'].value == "LatitudeRef":
                 latitude_direction = elem.attributes['value'].value
             if elem.attributes['name'].value == "LongitudeRef":
@@ -40,30 +43,23 @@ for filename in os.listdir(path_of_the_directory):
                 altitude = elem.attributes['value'].value
 
         if 'latitude' in locals():
-            # print(f"latitude: {latitude} ({latitude_direction}), longitude: {longitude} ({longitude_direction})")
-            latdeg, latmin, latsec = re.split(':', latitude)
-            latdecimal = float(latdeg) + float(latmin)/60 + float(latsec)/(60*60)
-            longdeg, longmin, longsec = re.split(':', longitude)
-            longdecimal = float(longdeg) + float(longmin)/60 + float(longsec)/(60*60)
+            latdecimal = geoconv_degr_dec(latitude)
+            longdecimal = geoconv_degr_dec(longitude)
             print(f"latitude, longitude: {latdecimal}, {longdecimal}")
             print(f"altitude: {altitude}")
-            # georow = pd.Series([creationdate, latitude, longitude])
-            geodf.loc[filename, :] = [pd.to_datetime(creationdate), latdecimal, longdecimal, altitude]
+            geodf.loc[filename, :] = [filename, pd.to_datetime(creationdate), latdecimal, longdecimal, altitude]
 
+# Find center of folium map
+latitude_mean = geodf['latitude'].mean()
+longitude_mean = geodf['longitude'].mean()
 
-print(geodf)
-# print(geodf.shape)
-BBox = ((geodf.longitude.min(), geodf.longitude.max(),
-         geodf.latitude.min(), geodf.latitude.max()))
-print(BBox)
-# "D:\Video\Vercors en Drome 2021\VDMmap.png"
-vdm2021_m = plt.imread('D:\Video\Vercors en Drome 2021\VDMmap.png')
+# Make folium map
+my_map = folium.Map(location=[latitude_mean, longitude_mean], zoom_start=12)
+markers = {}
 
-fig, ax = plt.subplots(figsize=(8, 7))
-ax.scatter(geodf.longitude, geodf.latitude, zorder=1, c='b', s=10)
-ax.set_title('Vercors en Drôme 2021')
-ax.set_xlim(BBox[0], BBox[1])
-ax.set_ylim(BBox[2], BBox[3])
+# Create folium markers. With filename and creationdate in popup.
+for index, georow in geodf.iterrows():
+    folium.Marker([georow['latitude'], georow['longitude']], popup=f"filename: {georow['xmlfilename']}</br>creationdate: {georow['creationdate']}").add_to(my_map)
 
-ax.imshow(vdm2021_m, zorder=0, extent=BBox, aspect='equal')
-plt.show()
+# Write html file with zoomable map
+my_map.save('videogps_folium.html')
