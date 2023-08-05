@@ -5,8 +5,10 @@ Python code that makes geo plots of the following video and photo formats:
 * Sony FDR-X3000 XML GPS data.
 
 
-# usage:
+
+# Usage:
 python media_gpsplot.py -m "/dir1,/dir2" -o my_media_gpsplot.html
 
--m: directories with media files
--o: output file with map (HTML)
+# Arguments:
+m: directories with media files
+o: output file with map (HTML)
