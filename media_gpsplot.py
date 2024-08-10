@@ -11,18 +11,17 @@ from xml.dom import minidom
 import os
 import re
 from pathlib import Path
+import datetime
+import logging
 import pandas as pd
 import folium
 # from folium import IFrame
 import PIL
 from PIL import Image
-from PIL.ExifTags import GPSTAGS
 from PIL.ExifTags import TAGS
 # import base64
 import pillow_heif
 import piexif
-import logging
-import datetime
 
 
 
@@ -131,7 +130,7 @@ class HEICFile:
             float: gps_alt_decimals
         """
         # Check that GPS data exists
-        if gpscoordinates_from_heic is None:
+        if (gpscoordinates_from_heic is None or gpscoordinates_from_heic=={}):
             return None
         # print(f"gpscoordinates_from_heic: {gpscoordinates_from_heic}")
         gps_lat_degrees = gpscoordinates_from_heic['GPSLatitude'][0][0] \
@@ -174,7 +173,8 @@ class HEICFile:
             gps_alt_decimals = (float(gps_altitude[0]) / float(gps_altitude[1])) * -1
 
         gps_alt_decimals = (float(gps_altitude[0]) / float(gps_altitude[1]))
-        print(f"Latitude: {gps_lat_decimals}, Longitude: {gps_long_decimals}, Altitude: {gps_alt_decimals}")
+        print(f"Latitude: {gps_lat_decimals}, Longitude: " \
+              f"{gps_long_decimals}, Altitude: {gps_alt_decimals}")
         return gps_lat_decimals, gps_long_decimals, gps_alt_decimals
 
 
@@ -322,7 +322,7 @@ class MP4XMLFile:
 
 class JpegFile:
     """ JpegFile class
-    """    
+    """
     def __init__(self, mediafile_location_disk, logger):
         # self.geocoordinate_in_degrees = None
         # self.mediafile_location_disk = mediafile_location_disk
@@ -344,7 +344,8 @@ class JpegFile:
         if self.jpeg_metadata_labeled is not None:
             if 'GPSInfo' in self.jpeg_metadata_labeled:
                 logger.debug('Run JpegFile method: get_geocoordinates_from_jpeg')
-                self.mediafile_geolocation = self.get_geocoordinates_from_jpeg(self.jpeg_metadata_labeled)
+                self.mediafile_geolocation = self.get_geocoordinates_from_jpeg( \
+                    self.jpeg_metadata_labeled)
             else:
                 self.mediafile_geolocation = None
         else:
@@ -359,7 +360,7 @@ class JpegFile:
 
         Returns:
             float: geo coordinate in decimals
-        """        
+        """ 
         geocoordinates_in_decimals = float(geocoordinate_in_degrees[0]) + \
                                      float(geocoordinate_in_degrees[1]) / 60 + \
                                      float(geocoordinate_in_degrees[2]) / (60 * 60)
@@ -434,10 +435,12 @@ class JpegFile:
 
         try:
             jpggeotags = jpeg_metadata_labeled['GPSInfo']
-            photo_latitude = self.convert_exif_geocoordinate_to_decimals(jpggeotags['GPSLatitude'],
-                                                                         jpggeotags['GPSLatitudeRef'])
-            photo_longitude = self.convert_exif_geocoordinate_to_decimals(jpggeotags['GPSLongitude'],
-                                                                          jpggeotags['GPSLongitudeRef'])
+            photo_latitude = \
+                self.convert_exif_geocoordinate_to_decimals(jpggeotags['GPSLatitude'],
+                                                            jpggeotags['GPSLatitudeRef'])
+            photo_longitude = \
+                self.convert_exif_geocoordinate_to_decimals(jpggeotags['GPSLongitude'],
+                                                            jpggeotags['GPSLongitudeRef'])
             if jpggeotags["GPSAltitudeRef"] == b'\x00':
                 photo_altitude = float(jpggeotags["GPSAltitude"])
             else:
@@ -467,14 +470,18 @@ def get_coordinates_from_media_files(media_files, extension, logger):
                         if media_file.suffix.lower() == extension_with_dot]
     # Create list of objects of class depending on extension
     if extension == "xml" or extension == "XML":
-        filtered_media_objects = [MP4XMLFile(media_file, logger) for media_file in filtered_media_files]
+        filtered_media_objects = [MP4XMLFile(media_file, logger) \
+                                  for media_file in filtered_media_files]
     elif extension == "heic" or extension == "HEIC":
-        filtered_media_objects = [HEICFile(media_file, logger) for media_file in filtered_media_files]
+        filtered_media_objects = [HEICFile(media_file, logger) \
+                                  for media_file in filtered_media_files]
     elif extension == "jpeg" or extension == "jpg":
-        filtered_media_objects = [JpegFile(media_file, logger) for media_file in filtered_media_files]
+        filtered_media_objects = [JpegFile(media_file, logger) \
+                                  for media_file in filtered_media_files]
 
     # Create list of filenames for the index of the data frame
-    filtered_media_files_list = [media_file.mediafile_location_disk for media_file in filtered_media_objects]
+    filtered_media_files_list = [media_file.mediafile_location_disk \
+                                 for media_file in filtered_media_objects]
     logging.debug('filtered_media_files_list: %s', filtered_media_files_list)
 
     # Create dataframe for media files with geolocation data
@@ -482,16 +489,16 @@ def get_coordinates_from_media_files(media_files, extension, logger):
                                   index=[filtered_media_files_list])
     # Go through filtered media files and add geolocation data to dataframe
     for media_file_object in filtered_media_objects:
-        # print(f"media_file_object.mediafile_geolocation: {media_file_object.mediafile_geolocation}")
-        logger.debug('media_file_object.mediafile_geolocation: %s', media_file_object.mediafile_geolocation)
+        logger.debug('media_file_object.mediafile_geolocation: %s' \
+                     , media_file_object.mediafile_geolocation)
         # If mediafile_geolocation is NaN, skip this file
         if media_file_object.mediafile_geolocation is None:
             print(f"Skipping {media_file_object.mediafile_location_disk}")
             logger.debug('Skipping %s', media_file_object.mediafile_location_disk)
         else:
             # Add geo data to dataframe
-            # print(f"media_file_xml.mediafile_geolocation: {media_file_object.mediafile_geolocation}")
-            logger.debug('media_file_xml.mediafile_geolocation: %s', media_file_object.mediafile_geolocation)
+            logger.debug('media_file_xml.mediafile_geolocation: %s', \
+                         media_file_object.mediafile_geolocation)
             media_files_df = pd.concat([media_files_df, pd.DataFrame([[ \
                 media_file_object.mediafile_creationdate, \
                 media_file_object.mediafile_geolocation[0], \
