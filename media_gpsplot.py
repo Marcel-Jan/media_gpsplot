@@ -63,7 +63,10 @@ class HEICFile:
         geocoordinates_in_decimals = float(geo_degrees) + \
             float(geo_minutes) / 60 + \
             float(geo_seconds) / (60 * 60)
-        if reference in ['S', 'W']:
+        # Southern or Western hemisphere needs to be negative
+        # Had to add b'W' and b'S' to the list of references because
+        # the reference is sometimes a byte string
+        if reference in ['S', 'W', b'S', b'W']:
             geocoordinates_in_decimals = geocoordinates_in_decimals * -1
         return geocoordinates_in_decimals
 
@@ -209,7 +212,7 @@ class MP4XMLFile:
         logger.debug("Run method: get_geocoordinates_from_metadata")
         self.mediafile_geolocation = self.get_geocoordinates_from_metadata(xml_metadata)
 
-    def convert_geocoordinate_to_decimals(self, geocoordinate_in_degrees):
+    def convert_geocoordinate_to_decimals(self, geocoordinate_in_degrees, reference):
         """ convert_sony_geocoordinate_to_decimals
             Converts geocoordinates in degrees, minutes, seconds to decimals.
 
@@ -223,6 +226,8 @@ class MP4XMLFile:
         # print(f"geocoordinate_in_degrees: {geocoordinate_in_degrees}")
         degree, minute, second = re.split(':', geocoordinate_in_degrees)
         geocoordinates_in_decimals = float(degree) + float(minute) / 60 + float(second) / (60 * 60)
+        if reference in ['S', 'W']:
+            geocoordinates_in_decimals = geocoordinates_in_decimals * -1
         return geocoordinates_in_decimals
 
     def get_metadata_from_xml(self, mediafile_location_disk):
@@ -277,15 +282,19 @@ class MP4XMLFile:
             if video_metadata_element.attributes['name'].value == "Latitude":
                 count_latitude_elements += 1
                 gpscoordinates_exist = True
-                # print(f"latitude: {video_metadata_element.attributes['value'].value}")
                 video_latitude = video_metadata_element.attributes['value'].value
 
+            if video_metadata_element.attributes['name'].value == "LatitudeRef":
+                video_latituderef = video_metadata_element.attributes['value'].value
+                print(f"video_latituderef: {video_latituderef}")
+
             if video_metadata_element.attributes['name'].value == "Longitude":
-                # print(f"longitude: {video_metadata_element.attributes['value'].value}")
                 video_longitude = video_metadata_element.attributes['value'].value
 
+            if video_metadata_element.attributes['name'].value == "LongitudeRef":
+                video_longituderef = video_metadata_element.attributes['value'].value
+
             if video_metadata_element.attributes['name'].value == "Altitude":
-                # print(f"altitude: {video_metadata_element.attributes['value'].value}")
                 video_altitude = video_metadata_element.attributes['value'].value
 
         # print(f"Latitude: {video_latitude}, Longitude: {video_longitude}, Altitude: {video_altitude}, AltitudeRef: {altitude_direction}")
@@ -297,8 +306,8 @@ class MP4XMLFile:
         print(f"gpscoordinates_exist: {gpscoordinates_exist}")
         if gpscoordinates_exist is True:
             if 'video_latitude' in locals() and gpscoordinates_exist is True:
-                latdecimal = self.convert_geocoordinate_to_decimals(video_latitude)
-                longdecimal = self.convert_geocoordinate_to_decimals(video_longitude)
+                latdecimal = self.convert_geocoordinate_to_decimals(video_latitude, video_latituderef)
+                longdecimal = self.convert_geocoordinate_to_decimals(video_longitude, video_longituderef)
                 # Sometimes only the altitude is missing
                 if video_altitude is None:
                     video_altitude = 0
@@ -364,7 +373,10 @@ class JpegFile:
         geocoordinates_in_decimals = float(geocoordinate_in_degrees[0]) + \
                                      float(geocoordinate_in_degrees[1]) / 60 + \
                                      float(geocoordinate_in_degrees[2]) / (60 * 60)
-        if reference in ['S', 'W']:
+        # Southern or Western hemisphere needs to be negative
+        # Had to add b'W' and b'S' to the list of references because
+        # the reference is sometimes a byte string
+        if reference in ['S', 'W', b'S', b'W']:
             geocoordinates_in_decimals = geocoordinates_in_decimals * -1
         return geocoordinates_in_decimals
 
